@@ -1,7 +1,10 @@
 [package]
+authors = ["Andrea Stevanato"]
 name = "stm32f103_blink"
 version = "0.1.0"
 edition = "2018"
+readme = "README.md"
+license = "MIT"
 
 [profile.release]
 opt-level = 's'
@@ -13,3 +16,8 @@ stm32f1 = {version = "0.7.1", features = ["stm32f103", "rt"]}
 cortex-m-rtfm = {version = "0.4.3", features = ['timer-queue']}
 cortex-m = "0.6.0"
 panic-semihosting = "0.5.2"
+
+[[bin]]
+name = "stm32f103_blink"
+test = false
+bench = false
