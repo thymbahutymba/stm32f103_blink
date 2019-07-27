@@ -1,11 +1,12 @@
 #![deny(unsafe_code)]
-#![deny(warnings)]
+// #![deny(warnings)]
 #![no_main]
 #![no_std]
 
 use panic_semihosting as _;
 use rtfm::{app, Instant};
 use stm32f1::stm32f103;
+use cortex_m_semihosting::hprintln;
 
 const PERIOD: u32 = 2_000_000;
 
@@ -13,7 +14,7 @@ const PERIOD: u32 = 2_000_000;
 const APP: () = {
 	static mut PERIPHERALS: stm32f103::Peripherals = ();
 
-	#[init]
+	#[init(spawn = [turn_on])]
 	fn init() -> init::LateResources {
 		let p = device;
 
@@ -26,12 +27,14 @@ const APP: () = {
 			.write(|w| w.mode13().bits(0b11).cnf13().bits(0b00));
 		gpioc.bsrr.write(|w| w.bs13().set_bit());
 
+		// hprintln!("Spawn first task from init: {:?}", spawn.turn_on());
+
 		init::LateResources { PERIPHERALS: p }
 	}
 
 	#[idle(spawn = [turn_on])]
 	fn idle() -> ! {
-		spawn.turn_on().unwrap();
+		hprintln!("Spawn first task from init: {:?}", spawn.turn_on());
 		loop {}
 	}
 
@@ -42,7 +45,7 @@ const APP: () = {
 		let gpioc = &resources.PERIPHERALS.GPIOC;
 		gpioc.bsrr.write(|w| w.bs13().set_bit());
 
-		let _ = schedule.turn_on(now + PERIOD.cycles()).unwrap();
+		hprintln!("Schedule turn on task: {:?}", schedule.turn_on(now + PERIOD.cycles()));
 	}
 
 	#[task(schedule = [turn_off], resources = [PERIPHERALS])]
@@ -52,7 +55,7 @@ const APP: () = {
 		let gpioc = &resources.PERIPHERALS.GPIOC;
 		gpioc.brr.write(|w| w.br13().set_bit());
 
-		let _ = schedule.turn_off(now + PERIOD.cycles()).unwrap();
+		hprintln!("Schedule turn off task: {:?}", schedule.turn_off(now + PERIOD.cycles()));
 	}
 
 	extern "C" {
